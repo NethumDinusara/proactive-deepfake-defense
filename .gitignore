@@ -1,0 +1,15 @@
+# Environments
+venv/
+__pycache__/
+
+# Data and Models
+data/
+models/
+results/
+stargan/
+stargan_celeba_256/
+
+# You can also ignore the generated images/PDFs if you don't want them in the repo
+*.png
+*.pdf
+*.jpg

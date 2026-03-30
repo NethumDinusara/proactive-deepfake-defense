@@ -1,0 +1,42 @@
+# --- 1. Dataset Paths ---
+# UPDATE THESE with your actual PC paths
+paths:
+  celeba_hq_source: "./data/raw/celeba_hq_256"
+  ffhq_source:      "./data/raw/Flickr_Faces_HQ"
+  lfw_source:       "./data/raw/Labelled_Faces_in_the_Wild"
+  
+  # Where the processed data will be saved (relative to project root)
+  train_data_output: "./data/processed/train"
+  test_data_output:  "./data/processed/test"
+  
+  # Where to save the trained perturbation and logs
+  results_dir: "./results"
+  models_dir: "./models"
+  
+  # --- ADDED: Path to the pre-trained StarGAN weights ---
+  stargan_weights: "./stargan_celeba_256/200000-G.ckpt"
+
+# --- 2. Preprocessing Settings ---
+data:
+  image_size: 256
+  train_subset_size: 5000  # Total images for training (CelebA + FFHQ)
+  test_subset_size: 1000   # Images for testing (LFW)
+
+# --- 3. Training Hyperparameters ---
+training:
+  batch_size: 1         # Keep small for 4GB GPU
+  epochs: 30
+  learning_rate: 0.005
+  epsilon: 0.04         # Perturbation magnitude (L-infinity constraint)'', Equivalent to 8/255, the standard for stealth
+  attack_strategy: 'directional_feature_disruption' # Changing from standard L2
+  steps: 50 # DDIM steps (usually 50 is sufficient for inversion)
+  
+  # Loss Weights (The "Hybrid Loss" from your methodology)
+  lambda_distort: 0.0   # Weight for LPIPS (Output Distortion)
+  lambda_geom: 1.0      # Weight for Geometric/Feature Loss
+  lambda_lpips: 5.0    # Controls the VGG perceptual penalty we added to train.py
+
+# --- 4. Hardware ---
+system:
+  seed: 42
+  num_workers: 0        # MUST BE 0 FOR WINDOWS to prevent DataLoader crashes
