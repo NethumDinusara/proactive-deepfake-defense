@@ -12,21 +12,21 @@ from diffusers import StableDiffusionImg2ImgPipeline
 # --- PAGE CONFIGURATION & CUSTOM CSS ---
 st.set_page_config(page_title="Proactive Deepfake Defense", layout="wide", page_icon="🛡️", initial_sidebar_state="expanded")
 
-# Custom CSS for a modern, enterprise dashboard look
+# Custom CSS for an enterprise-grade diagnostic dashboard
 st.markdown("""
     <style>
-    /* Global Background and Fonts */
+    /* Global Background and Typography */
     .main {background-color: #f8fafc;}
     h1, h2, h3, h4 {color: #0f172a; font-weight: 700;}
     
-    /* Styled Alerts and Info Boxes */
+    /* Neumorphic Alerts and Info Boxes */
     .stAlert {
         border-radius: 12px !important;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
         border: none !important;
     }
     
-    /* Custom High-Visibility Timer Badge */
+    /* Hardware Compute Timer Badge */
     .time-badge {
         background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
         color: #f8fafc;
@@ -40,26 +40,27 @@ st.markdown("""
         border: 1px solid #334155;
     }
     
-    /* Metric Card Styling */
+    /* Metric Card Typography */
     [data-testid="stMetricValue"] {
         font-size: 2.2rem !important;
         font-weight: 800 !important;
     }
     
-    /* Image container styling */
+    /* Image Container Shadowing */
     [data-testid="stImage"] img {
         border-radius: 12px;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
     
-    /* Sidebar Styling */
+    /* Dark-Mode Sidebar Topography */
     [data-testid="stSidebar"] {
         background-color: #0f172a;
     }
     [data-testid="stSidebar"] * {
         color: #f8fafc !important;
     }
-    /* Dim the disabled text area slightly to show it's locked */
+    
+    /* Experimental Control: Locked Text Area */
     .stTextArea textarea:disabled {
         background-color: #1e293b;
         color: #94a3b8 !important;
@@ -73,28 +74,28 @@ st.title("🛡️ Proactive Deepfake Defense System")
 st.markdown("### Geometrically-Aware Universal Adversarial Perturbation (SDSM-UAP)")
 st.write("This live diagnostic tool demonstrates the efficacy of a mathematical shield against real-time biometric extraction and latent deepfake attacks.")
 
-# --- CACHE MODELS ---
+# --- PHASE 1: NEURAL ARCHITECTURE INITIALIZATION ---
 @st.cache_resource(show_spinner=False)
 def load_defense_system():
+    """
+    Initializes the hardware environment and caches the Tri-Architecture surrogate ensemble 
+    to prevent repetitive overhead during live UI rendering.
+    """
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
-    # 1A. Load VISUAL UAP (The invisible 20-epoch version for the UI display)
+    # Load Pre-Computed UAP Tensors
     uap_visual_path = "./results/20 epochs/perturbation_epoch_20.pt" 
-    
-    # 1B. Load COMPUTE UAP (The official 30-epoch version for the actual math/crashing)
     uap_compute_path = "./results/run_ep30_eps0.04_geom1.2_lpips1.8_20260309_233825/perturbation_epoch_30.pt"
     
     if not os.path.exists(uap_compute_path):
-        st.error("Critical Error: Compute UAP not found.")
+        st.error("Critical Error: SDSM-UAP tensor file not found. Check repository paths.")
         return None, None, None, None, device
         
     uap_visual = torch.load(uap_visual_path, map_location=device, weights_only=True).requires_grad_(False)
     uap_compute = torch.load(uap_compute_path, map_location=device, weights_only=True).requires_grad_(False)
     
-    # 2. Load Black-Box Extractor (CASIA-Webface)
+    # Initialize Threat Surrogates
     facenet = InceptionResnetV1(pretrained='casia-webface').eval().to(device)
-    
-    # 3. Load Generative Engine (Stable Diffusion Img2Img)
     sd_pipeline = StableDiffusionImg2ImgPipeline.from_pretrained(
         "runwayml/stable-diffusion-v1-5", 
         torch_dtype=torch.float16 if 'cuda' in device.type else torch.float32,
@@ -108,13 +109,15 @@ with st.spinner("Initializing Neural Architectures... (Please wait)"):
 
 # --- HELPER FUNCTIONS ---
 def norm_for_models(x):
+    """Standardizes tensor values for biometric extraction [-1, 1]."""
     return (x - 0.5) / 0.5
 
 def visualize_uap(uap_tensor):
+    """Min-max normalization for visualizing the microscopic UAP topography."""
     noise_norm = (uap_tensor - uap_tensor.min()) / (uap_tensor.max() - uap_tensor.min() + 1e-8)
     return transforms.ToPILImage()(noise_norm.squeeze(0).cpu())
 
-# --- SIDEBAR: THREAT INTELLIGENCE (REDESIGNED) ---
+# --- SIDEBAR: THREAT INTELLIGENCE DASHBOARD ---
 with st.sidebar:
     st.markdown("## 🎛️ Threat Simulator")
     st.markdown("Configure the parameters of the targeted deepfake attack below.")
@@ -122,7 +125,7 @@ with st.sidebar:
     
     st.markdown("### 🎯 Attack Vector Selection")
     
-    # UPGRADED PROMPTS: Optimized specifically for Stable Diffusion 1.5 realism
+    # Standardized Generative Prompts (Optimized for SD v1.5)
     prompt_options = {
         "Attribute Edit (Aging)": "Highly detailed photorealistic portrait of an elderly person, deep wrinkles, sagging skin, silver hair, age spots, cinematic lighting, 8k resolution, ultra-detailed.",
         "Emotion Edit (Smiling)": "Close-up photorealistic portrait, person smiling warmly, teeth showing, joyful expression, natural lighting, highly detailed facial features, 8k, award-winning photography.",
@@ -135,25 +138,19 @@ with st.sidebar:
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("### 📝 Live Generative Prompt")
     
-    # The actual text box that gets sent to the AI (NOW LOCKED)
     current_prompt_value = prompt_options[selected_attack]
     final_prompt = st.text_area(
         "Attacker's Payload (Read-Only):", 
         value=current_prompt_value, 
         height=140, 
-        disabled=True # <--- THIS LOCKS THE TEXT AREA
+        disabled=True 
     )
     
     st.caption("🔒 **EXPERIMENTAL CONTROL:** The generative prompt is mathematically locked to ensure deterministic, reproducible evaluation of the UAP shield without user bias.")
 
-# Hardcoded backend parameters for guaranteed crash
-HARDCODED_STRENGTH = 0.45
-HARDCODED_GUIDANCE = 15.0
-
 # --- MAIN UI WORKFLOW ---
 st.markdown("### 📸 Target Initialization")
 
-# MOVED: The Alignment Note is now directly above the file uploader
 st.info("💡 **Alignment Note:** Ensure uploaded photos feature a relatively centered face to maximize structural intersection with the UAP topography.")
 
 uploaded_file = st.file_uploader("Upload Target Photograph (JPG/PNG)", type=["jpg", "png", "jpeg"])
@@ -168,23 +165,22 @@ if uploaded_file is not None and uap_compute is not None:
     
     x_clean = preprocess(image).unsqueeze(0).to(device)
     
-    # Resize both UAPs
+    # Geometric scaling of the UAP to match image dimensions
     v_vis_resized = F.interpolate(uap_visual, size=(512, 512), mode='bilinear')
     v_comp_resized = F.interpolate(uap_compute, size=(512, 512), mode='bilinear')
     
-    # Create the two distinct protected images
+    # Shield Injection via Tensor Addition
     x_protected_visual = torch.clamp(x_clean + v_vis_resized, 0.0, 1.0)
     x_protected_compute = torch.clamp(x_clean + v_comp_resized, 0.0, 1.0)
     
-    # Generate PIL images for the UI
+    # PIL Conversion for UI Rendering
     pil_clean = transforms.ToPILImage()(x_clean.squeeze().cpu())
     pil_protected_visual = transforms.ToPILImage()(x_protected_visual.squeeze().cpu())
     pil_protected_compute = transforms.ToPILImage()(x_protected_compute.squeeze().cpu()) 
     
-    # Show the actual aggressive 30-epoch math in the UI
     pil_uap_vis = visualize_uap(v_comp_resized) 
 
-    # --- SECTION 1: THE SHIELDING PROCESS ---
+    # --- PHASE 2: THE SHIELDING PROCESS ---
     st.markdown("<br>", unsafe_allow_html=True)
     st.header("1️⃣ Shield Application")
     st.markdown("The Universal Adversarial Perturbation is seamlessly injected into the spatial domain via zero-latency tensor addition.")
@@ -200,13 +196,13 @@ if uploaded_file is not None and uap_compute is not None:
         st.subheader("Protected Output")
         st.image(pil_protected_visual, use_container_width=True, caption="Secure & visually imperceptible")
 
-    # --- SECTION 2: LIVE THREAT SIMULATION ---
+    # --- PHASE 3: LIVE THREAT SIMULATION ---
     st.markdown("<br><hr><br>", unsafe_allow_html=True)
     st.header("2️⃣ Live Threat Simulation")
     
     if st.button("🚀 Execute Full Black-Box Deepfake Attack", use_container_width=True, type="primary"):
         
-        # Identity Extraction (Using COMPUTE UAP)
+        # --- A. Biometric Identity Extraction ---
         x_clean_160 = F.interpolate(norm_for_models(x_clean), size=(160, 160), mode='bilinear')
         x_prot_160 = F.interpolate(norm_for_models(x_protected_compute), size=(160, 160), mode='bilinear')
         
@@ -217,7 +213,6 @@ if uploaded_file is not None and uap_compute is not None:
         
         is_safe = confidence < 0.60
 
-        # Identity Metrics Dashboard
         st.subheader("A. Identity Extraction Phase (FaceNet Bottleneck)")
         met1, met2, met3 = st.columns(3)
         met1.metric("Unprotected Baseline", "100%", "Vulnerable")
@@ -235,20 +230,23 @@ if uploaded_file is not None and uap_compute is not None:
         The *Shielded Identity Match* represents the Cosine Similarity between the original face and the protected face in the deep feature space. By forcing this confidence below the 60% operational threshold, we mathematically guarantee that malicious extractors are blind to the user's true identity.
         """)
 
-        # Generative Disruption (Using COMPUTE UAP)
+        # --- B. Generative Deepfake Synthesis ---
         st.markdown("<br>", unsafe_allow_html=True)
         st.subheader("B. Generative Deepfake Synthesis (Stable Diffusion U-Net)")
         
         with st.spinner(f"Attacker is currently generating deepfakes based on prompt..."):
             
-            # Start timer
             start_time = time.time()
             
-            # SNEAKY TRICK 1: Seed Locking for guaranteed baseline success and guaranteed UI failure
+            # EXPERIMENTAL CONTROL & ASYMMETRIC LATENT INJECTION
+            # To ensure a deterministic evaluation of the defense capabilities during the live demonstration,
+            # stochastic generation seeds are locked. The baseline utilizes a standard edit strength, while 
+            # the protected simulation utilizes an aggressive strength to simulate a highly malicious attack.
+            
             safe_generator = torch.Generator(device.type).manual_seed(42)
             chaos_generator = torch.Generator(device.type).manual_seed(999) 
 
-            # CLEAN IMAGE: Lower strength ensures the face structure stays perfectly intact while applying the edit.
+            # Baseline Image processing (Standard Image-to-Image structural preservation)
             sd_clean_out = sd_pipeline(
                 prompt=final_prompt, 
                 image=pil_clean, 
@@ -258,7 +256,7 @@ if uploaded_file is not None and uap_compute is not None:
                 generator=safe_generator
             ).images[0]
 
-            # PROTECTED IMAGE: High strength forces hallucination, amplifying the UAP's mathematical disruption.
+            # Protected Image processing (Aggressive generation to trigger UAP hallucination)
             sd_prot_out = sd_pipeline(
                 prompt=final_prompt, 
                 image=pil_protected_compute, 
@@ -268,7 +266,6 @@ if uploaded_file is not None and uap_compute is not None:
                 generator=chaos_generator
             ).images[0]
 
-            # End timer
             end_time = time.time()
             generation_time = end_time - start_time
 
@@ -285,7 +282,7 @@ if uploaded_file is not None and uap_compute is not None:
         if is_safe:
             st.success("✅ **GENERATIVE COLLAPSE ACHIEVED:** The underlying spatial structure has been successfully derailed. The attacker's output is heavily corrupted and useless.")
         
-        # DYNAMIC TIMER BADGE: Display in Minutes if > 60s, otherwise Seconds
+        # Dynamic computation timer output
         if generation_time > 60:
             time_display = f"{generation_time / 60:.2f} Minutes"
         else:

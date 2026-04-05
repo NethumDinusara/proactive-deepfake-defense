@@ -2,7 +2,8 @@ import sys
 import types
 from unittest.mock import MagicMock
 
-# --- ROBUST WINDOWS FIX ---
+# --- Windows Environment Compatibility Fix ---
+# Mocks the 'aim' tracking module to prevent import errors on Windows systems.
 aim_module = types.ModuleType("aim")
 aim_module.__spec__ = MagicMock()
 aim_module.__path__ = []
@@ -10,7 +11,7 @@ sys.modules["aim"] = aim_module
 aim_sdk_module = types.ModuleType("aim.sdk")
 aim_sdk_module.__spec__ = MagicMock()
 sys.modules["aim.sdk"] = aim_sdk_module
-# ---------------------------
+# ---------------------------------------------
 
 import os
 import csv
@@ -27,6 +28,11 @@ from models import SurrogateEnsemble
 from utils import load_config, seed_everything, get_device, ensure_dir
 
 class FlatFolderDataset(Dataset):
+    """
+    Custom Dataset loader for unaligned, pristine facial imagery.
+    Used to optimize the Universal Adversarial Perturbation (UAP) across a diverse 
+    data manifold, ensuring image-agnostic transferability.
+    """
     def __init__(self, root_dir, transform=None):
         self.root_dir = root_dir
         self.transform = transform
@@ -45,16 +51,29 @@ class FlatFolderDataset(Dataset):
         return image
 
 def project_linf(v, epsilon):
-    """Constrains perturbation magnitude to maintain visual stealth."""
+    """
+    L-infinity (L_inf) Norm Projection.
+    Strictly constrains the perturbation magnitude to a defined epsilon boundary [-e, e] 
+    to maintain visual stealth and prevent pixel overflow.
+    """
     v.data = torch.clamp(v.data, -epsilon, epsilon)
 
 def train():
+    """
+    Main Optimization Loop for the Geometrically-Aware UAP.
+    
+    Orchestrates the Tri-Architecture Surrogate Ensemble and balances the 
+    Stealth-Robustness trade-off by minimizing LPIPS while maximizing deep 
+    feature divergence (SDSM strategy). Utilizes Sequential Gradient Accumulation 
+    to bypass hardware memory constraints.
+    """
     config = load_config()
     seed_everything(config['system']['seed'])
     device = get_device()
     
-    print(f"--- Tri-Surrogate SDA-T3 UAP Optimization on {device} ---")
+    print(f"--- Tri-Surrogate SDSM-UAP Optimization on {device} ---")
     
+    # Hyperparameter Initialization
     epsilon = config['training']['epsilon']
     epochs = config['training']['epochs']
     lambda_lpips = config['training']['lambda_lpips']
@@ -71,15 +90,18 @@ def train():
     dataset = FlatFolderDataset(config['paths']['train_data_output'], transform=transform)
     dataloader = DataLoader(dataset, batch_size=config['training']['batch_size'], shuffle=True, num_workers=0)
     
+    # Initialize the Surrogate Ensemble and Perceptual Metric
     ensemble = SurrogateEnsemble(device)
     loss_fn_vgg = lpips.LPIPS(net='vgg').to(device)
     
+    # Initialize the Universal Perturbation Tensor (v)
     v = torch.empty(1, 3, 256, 256).uniform_(-epsilon, epsilon).to(device)
     v.requires_grad = True
     
     optimizer = optim.Adam([v], lr=config['training']['learning_rate'])
     scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs)
 
+    # Initialize Empirical Logging
     csv_file = os.path.join(run_dir, "training_log.csv")
     with open(csv_file, mode='w', newline='') as f:
         writer = csv.writer(f)
@@ -96,47 +118,49 @@ def train():
         for x_clean in progress:
             x_clean = x_clean.to(device)
             
-            # 1. CLEAR PREVIOUS GRADIENTS
             optimizer.zero_grad()
             
-            # --- 2. LPIPS Stealth Penalty ---
+            # --- Phase 1: LPIPS Stealth Penalty ---
+            # Enforces perceptual similarity to prevent visual artifacting.
             x_pert = torch.clamp(x_clean + v, 0, 1)
             loss_lpips = lambda_lpips * loss_fn_vgg(x_clean * 2 - 1, x_pert * 2 - 1).mean()
-            loss_lpips.backward() # BACKWARD PASS 1
+            loss_lpips.backward() 
             
-            # --- 3. VRAM-Efficient Gradient Accumulation ---
+            # --- Phase 2: Sequential Gradient Accumulation ---
+            # Loads individual surrogates into VRAM, computes the directional loss, 
+            # accumulates the gradient into `v.grad`, and immediately offloads the model to CPU.
             
-            # Anchor A: FaceNet
+            # Anchor A: Biometric Extraction (FaceNet)
             ensemble.facenet.to(device)
             loss_facenet = ensemble.forward_loss(x_clean, v, mode="facenet")
-            loss_facenet.backward() # BACKWARD PASS 2 (While FaceNet is still on GPU)
+            loss_facenet.backward() 
             ensemble.facenet.to("cpu")
             torch.cuda.empty_cache()
             
-            # Anchor B: Diffusion 
+            # Anchor B: Latent Diffusion (DDPM U-Net)
             loss_diff = torch.tensor(0.0, device=device)
             if hasattr(ensemble, 'unet') and ensemble.unet is not None:
                 ensemble.unet.to(device)
                 loss_diff = ensemble.forward_loss(x_clean, v, mode="diffusion")
-                loss_diff.backward() # BACKWARD PASS 3 (While UNet is still on GPU)
+                loss_diff.backward() 
                 ensemble.unet.to("cpu")
                 torch.cuda.empty_cache()
                 
-            # Anchor C: StarGAN
+            # Anchor C: Spatial Synthesis (StarGAN)
             loss_gan = torch.tensor(0.0, device=device)
             if hasattr(ensemble, 'stargan') and ensemble.stargan is not None:
                 ensemble.stargan.to(device)
                 loss_gan = ensemble.forward_loss(x_clean, v, mode="gan")
-                loss_gan.backward() # BACKWARD PASS 4 (While StarGAN is still on GPU)
+                loss_gan.backward() 
                 ensemble.stargan.to("cpu")
                 torch.cuda.empty_cache()
             
-            # --- 4. STEP OPTIMIZER ---
-            # All gradients are now safely accumulated inside `v.grad`!
+            # --- Phase 3: Optimizer Step and Projection ---
+            # Updates the perturbation tensor and enforces mathematical stealth boundaries.
             optimizer.step()
             project_linf(v, epsilon)
             
-            # Logging tracking variables
+            # Record batch metrics
             total_facenet += loss_facenet.item()
             total_diff += loss_diff.item()
             total_gan += loss_gan.item()
@@ -152,6 +176,7 @@ def train():
         scheduler.step()
         num_batches = len(dataloader)
         
+        # Log epoch metrics to CSV
         with open(csv_file, mode='a', newline='') as f:
             writer = csv.writer(f)
             writer.writerow([
@@ -163,6 +188,7 @@ def train():
                 scheduler.get_last_lr()[0]
             ])
         
+        # Checkpoint: Save computed tensor and visual representation
         torch.save(v.detach().cpu(), os.path.join(run_dir, f"perturbation_epoch_{epoch}.pt"))
         v_vis = (v.detach().cpu() + epsilon) / (2 * epsilon)
         transforms.ToPILImage()(v_vis.squeeze(0)).save(os.path.join(run_dir, f"vis_epoch_{epoch}.png"))

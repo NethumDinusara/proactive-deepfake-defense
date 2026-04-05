@@ -1,42 +1,52 @@
-# --- 1. Dataset Paths ---
-# UPDATE THESE with your actual PC paths
+# ==============================================================================
+# EXPERIMENTAL CONFIGURATION: SDSM-UAP PROACTIVE DEFENSE
+# Architecture: Tri-Surrogate Ensemble (FaceNet, StarGAN, DDPM)
+# Hardware Target: 4GB VRAM (Sequential Gradient Accumulation)
+# ==============================================================================
+
+# --- 1. Topographic Directory Mapping ---
 paths:
+  # Source Manifolds (Pristine Datasets)
   celeba_hq_source: "./data/raw/celeba_hq_256"
   ffhq_source:      "./data/raw/Flickr_Faces_HQ"
   lfw_source:       "./data/raw/Labelled_Faces_in_the_Wild"
   
-  # Where the processed data will be saved (relative to project root)
+  # Preprocessed Spatial Manifolds
   train_data_output: "./data/processed/train"
   test_data_output:  "./data/processed/test"
   
-  # Where to save the trained perturbation and logs
+  # Optimization Checkpoints and Artifacts
   results_dir: "./results"
-  models_dir: "./models"
+  models_dir:  "./models"
   
-  # --- ADDED: Path to the pre-trained StarGAN weights ---
+  # Local Surrogate Weights
   stargan_weights: "./stargan_celeba_256/200000-G.ckpt"
 
-# --- 2. Preprocessing Settings ---
+# --- 2. Data Pipeline Specifications ---
 data:
   image_size: 256
-  train_subset_size: 5000  # Total images for training (CelebA + FFHQ)
-  test_subset_size: 1000   # Images for testing (LFW)
+  train_subset_size: 5000  # Total optimization manifold (CelebA-HQ + FFHQ)
+  test_subset_size: 1000   # Zero-shot evaluation manifold (Aligned LFW)
 
-# --- 3. Training Hyperparameters ---
+# --- 3. Optimization Hyperparameters ---
 training:
-  batch_size: 1         # Keep small for 4GB GPU
-  epochs: 30
+  # VRAM Optimization Constraints
+  batch_size: 1            # Constrained to 1 to prevent CUDA Out-Of-Memory (OOM) exceptions
+  epochs: 30               # Total optimization passes over the training manifold
   learning_rate: 0.005
-  epsilon: 0.04         # Perturbation magnitude (L-infinity constraint)'', Equivalent to 8/255, the standard for stealth
-  attack_strategy: 'directional_feature_disruption' # Changing from standard L2
-  steps: 50 # DDIM steps (usually 50 is sufficient for inversion)
   
-  # Loss Weights (The "Hybrid Loss" from your methodology)
-  lambda_distort: 0.0   # Weight for LPIPS (Output Distortion)
-  lambda_geom: 1.0      # Weight for Geometric/Feature Loss
-  lambda_lpips: 5.0    # Controls the VGG perceptual penalty we added to train.py
+  # Adversarial Constraints
+  epsilon: 0.04            # L-infinity norm bound (strict magnitude clipping for visual stealth)
+  
+  # SDSM Disruption Weights (The Stealth-Robustness Trade-off)
+  lambda_geom: 1.0         # Coefficient for the deep feature divergence (Angular + Spatial MSE)
+  lambda_lpips: 5.0        # Perceptual penalty coefficient to enforce structural similarity
+  
+  # Algorithm Directives
+  attack_strategy: "directional_feature_disruption" # Refers to the SDSM optimization logic
+  steps: 50                # Default inference steps for auxiliary latent diffusion processes
 
-# --- 4. Hardware ---
+# --- 4. Hardware & System Configuration ---
 system:
-  seed: 42
-  num_workers: 0        # MUST BE 0 FOR WINDOWS to prevent DataLoader crashes
+  seed: 42                 # Ensures deterministic tensor initialization and reproducible manifolds
+  num_workers: 0           # Enforced 0 for Windows OS memory paging compatibility
