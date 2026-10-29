@@ -1,17 +1,7 @@
-import sys
-import types
-from unittest.mock import MagicMock
 
-# --- Windows Environment Compatibility Fix ---
-# Mocks the 'aim' tracking module to prevent import errors on Windows systems.
-aim_module = types.ModuleType("aim")
-aim_module.__spec__ = MagicMock()
-aim_module.__path__ = []
-sys.modules["aim"] = aim_module
-aim_sdk_module = types.ModuleType("aim.sdk")
-aim_sdk_module.__spec__ = MagicMock()
-sys.modules["aim.sdk"] = aim_sdk_module
-# ---------------------------------------------
+import _path  # noqa: F401  -- puts src/ and third_party/ on sys.path
+from uap import compat  # noqa: F401  -- stubs `aim` before torch/diffusers
+
 
 import os
 import csv
@@ -24,8 +14,8 @@ from PIL import Image
 from tqdm import tqdm
 import lpips 
 
-from models import SurrogateEnsemble
-from utils import load_config, seed_everything, get_device, ensure_dir
+from uap.ensemble import SurrogateEnsemble
+from uap.config import load_config, seed_everything, get_device, ensure_dir
 
 class FlatFolderDataset(Dataset):
     """

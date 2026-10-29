@@ -1,17 +1,14 @@
+
+import _path  # noqa: F401  -- puts src/ and third_party/ on sys.path
 import os
 import sys
 from PIL import Image
 from tqdm import tqdm
-import torch
 from facenet_pytorch import MTCNN
 import numpy as np
 
-# --- Custom Utilities ---
-try:
-    from utils import load_config, seed_everything, get_device, ensure_dir
-except ImportError:
-    print("[ERROR] Could not import 'utils.py'. Ensure it exists in the project root.")
-    sys.exit(1)
+
+from uap.config import load_config, seed_everything, get_device, ensure_dir
 
 def process_clean_dataset(source_path, dest_path, prefix, target_size, max_images):
     """

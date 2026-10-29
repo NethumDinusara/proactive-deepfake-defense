@@ -1,17 +1,6 @@
-import sys
-import types
-from unittest.mock import MagicMock
 
-# --- Windows Environment Compatibility Fix ---
-# Mocks the 'aim' tracking module to prevent import errors on Windows systems.
-aim_module = types.ModuleType("aim")
-aim_module.__spec__ = MagicMock()
-aim_module.__path__ = []
-sys.modules["aim"] = aim_module
-aim_sdk_module = types.ModuleType("aim.sdk")
-aim_sdk_module.__spec__ = MagicMock()
-sys.modules["aim.sdk"] = aim_sdk_module
-# ---------------------------------------------
+from . import compat  # noqa: F401  -- stubs `aim` before torch
+
 
 import torch
 import torch.nn as nn
@@ -25,8 +14,8 @@ try:
 except ImportError:
     print("[ERROR] Could not import StarGAN. Please ensure the 'stargan' folder is in your project root.")
 
-from utils import load_config
-from robustness import RobustnessAugmentation 
+from .config import load_config
+from .augment import RobustnessAugmentation 
 
 class SurrogateEnsemble(nn.Module):
     """

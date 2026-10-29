@@ -1,3 +1,5 @@
+
+import _path  # noqa: F401  -- puts src/ and third_party/ on sys.path
 import streamlit as st
 import torch
 import torch.nn.functional as F
@@ -6,6 +8,7 @@ from PIL import Image
 import os
 import time
 
+from uap.config import PROJECT_ROOT
 from facenet_pytorch import InceptionResnetV1
 from diffusers import StableDiffusionImg2ImgPipeline
 
@@ -84,8 +87,10 @@ def load_defense_system():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
     # Load Pre-Computed UAP Tensors
-    uap_visual_path = "./results/20 epochs/perturbation_epoch_20.pt" 
-    uap_compute_path = "./results/run_ep30_eps0.04_geom1.2_lpips1.8_20260309_233825/perturbation_epoch_30.pt"
+    # Resolved against the project root, so the app runs from any directory.
+    uap_visual_path = str(PROJECT_ROOT / "archive/results/20 epochs/perturbation_epoch_20.pt")
+    uap_compute_path = str(PROJECT_ROOT / "results/run_ep30_eps0.04_geom1.2_lpips1.8_20260309_233825"
+                           / "perturbation_epoch_30.pt")
     
     if not os.path.exists(uap_compute_path):
         st.error("Critical Error: SDSM-UAP tensor file not found. Check repository paths.")
