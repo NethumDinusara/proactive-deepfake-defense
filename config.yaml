@@ -26,7 +26,7 @@ paths:
 data:
   image_size: 256
   train_subset_size: 5000  # Total optimization manifold (CelebA-HQ + FFHQ)
-  test_subset_size: 1000   # Zero-shot evaluation manifold (Aligned LFW)
+  test_subset_size: 13233   # Zero-shot evaluation manifold (Aligned LFW)
 
 # --- 3. Optimization Hyperparameters ---
 training:
@@ -39,8 +39,8 @@ training:
   epsilon: 0.04            # L-infinity norm bound (strict magnitude clipping for visual stealth)
   
   # SDSM Disruption Weights (The Stealth-Robustness Trade-off)
-  lambda_geom: 1.0         # Coefficient for the deep feature divergence (Angular + Spatial MSE)
-  lambda_lpips: 5.0        # Perceptual penalty coefficient to enforce structural similarity
+  lambda_geom: 1.2         # Coefficient for the deep feature divergence (Angular + Spatial MSE)
+  lambda_lpips: 1.8        # Perceptual penalty coefficient to enforce structural similarity
   
   # Algorithm Directives
   attack_strategy: "directional_feature_disruption" # Refers to the SDSM optimization logic
