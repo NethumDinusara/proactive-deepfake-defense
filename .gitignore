@@ -1,15 +1,29 @@
 # Environments
 venv/
+.venv/
 __pycache__/
+*.py[cod]
 
-# Data and Models
+# IDE
+.idea/
+.vscode/
+
+# Datasets and model weights -- see README for how to obtain them
 data/
 models/
-results/
-stargan/
 stargan_celeba_256/
+third_party/stargan/
 
-# You can also ignore the generated images/PDFs if you don't want them in the repo
-*.png
-*.pdf
-*.jpg
+# Experiment outputs (large). The per-image CSVs that back the paper are
+# listed in results/README.md; commit those deliberately if you want them
+# versioned.
+results/*
+!results/README.md
+archive/results/
+
+# Third-party binaries
+*.exe
+
+# Office lock/temp files
+~$*
+*.tmp
