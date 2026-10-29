@@ -18,10 +18,10 @@ Supervised by **Akarshani Amarasinghe**
 
 <br>
 
-<img src="figures/fig_teaser.png" alt="Original, protected and amplified perturbation for three held-out LFW identities" width="620">
+<img src="figures/fig_architecture.png" alt="The tri-architecture surrogate ensemble: one trainable UAP optimised jointly against FaceNet, StarGAN and a DDPM U-Net" width="680">
 
-<sub><b>Left:</b> original · <b>Middle:</b> protected · <b>Right:</b> the perturbation, min-max normalised to make its structure visible.<br>
-One fixed tensor, L<sub>∞</sub> ≤ 0.04 (10.2/255), added to every image. Shown at full strength, where it is visible on close inspection — see the <a href="#-stealthrobustness-operating-curve">operating curve</a> for weaker settings.</sub>
+<sub>One trainable perturbation δ, bounded by L<sub>∞</sub> ≤ 0.04 (10.2/255), optimised jointly against three frozen surrogates.<br>
+Each contributes a directional feature-space loss; gradients accumulate sequentially so peak memory stays under 4 GB.</sub>
 
 </div>
 
