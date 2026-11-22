@@ -386,16 +386,20 @@ result depends on it.
 ## 📄 Citation
 
 ```bibtex
-@misc{perera2026uap,
-  title  = {Geometrically-aware Universal Adversarial Perturbations
-            for Cross-Architecture Facial Privacy Protection},
-  author = {Perera, Nethum Dinusara and Amarasinghe, Akarshani},
-  year   = {2026},
-  note   = {BSc (Hons) Artificial Intelligence and Data Science,
-            Informatics Institute of Technology / Robert Gordon University}
+@inproceedings{perera2026uap,
+  title     = {Geometrically-Aware Universal Adversarial Perturbations
+               for Cross-Architecture Facial Privacy Protection},
+  author    = {Perera, Nethum Dinusara and Amarasinghe, Akarshani},
+  booktitle = {2026 8th International Conference on Advancements in
+               Computing (ICAC)},
+  publisher = {IEEE},
+  year      = {2026},
+  note      = {Accepted, to appear}
 }
 ```
 
+GitHub's "Cite this repository" button uses [`CITATION.cff`](CITATION.cff).
+
 ## 📜 License
 
-Released under the [MIT License](https://opensource.org/licenses/MIT).
+Released under the [MIT License](LICENSE).
