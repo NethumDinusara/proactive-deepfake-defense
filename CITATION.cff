@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use this code, please cite the paper below."
+title: "proactive-deepfake-defense"
+type: software
+authors:
+  - family-names: Perera
+    given-names: Nethum Dinusara
+license: MIT
+repository-code: "https://github.com/NethumDinusara/proactive-deepfake-defense"
+keywords:
+  - adversarial machine learning
+  - universal adversarial perturbations
+  - facial privacy
+  - deepfakes
+preferred-citation:
+  type: conference-paper
+  title: "Geometrically-Aware Universal Adversarial Perturbations for Cross-Architecture Facial Privacy Protection"
+  authors:
+    - family-names: Perera
+      given-names: Nethum Dinusara
+    - family-names: Amarasinghe
+      given-names: Akarshani
+  collection-title: "2026 8th International Conference on Advancements in Computing (ICAC)"
+  publisher:
+    name: IEEE
+  year: 2026
